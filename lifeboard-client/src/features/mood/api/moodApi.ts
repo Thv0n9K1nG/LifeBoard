@@ -1,4 +1,4 @@
-﻿import api from '../../../lib/api';
+import { invokeCommand } from "@/lib/commands";
 
 export interface MoodEntry {
   id: number;
@@ -16,19 +16,16 @@ export interface UpsertMoodPayload {
 }
 
 export const moodApi = {
-  getByDate: async (date: string): Promise<MoodEntry> => {
-    const res = await api.get<MoodEntry>(`/mood-entries/date/${date}`);
-    return res.data;
+  getByDate: async (date: string): Promise<MoodEntry | null> => {
+    return invokeCommand<MoodEntry | null>("get_mood_entry_by_date", { date });
   },
   getAll: async (): Promise<MoodEntry[]> => {
-    const res = await api.get<MoodEntry[]>('/mood-entries');
-    return res.data;
+    return invokeCommand<MoodEntry[]>("get_mood_entries");
   },
   upsert: async (data: UpsertMoodPayload): Promise<MoodEntry> => {
-    const res = await api.post<MoodEntry>('/mood-entries', data);
-    return res.data;
+    return invokeCommand<MoodEntry>("upsert_mood_entry", { payload: data });
   },
   delete: async (id: number): Promise<void> => {
-    await api.delete(`/mood-entries/${id}`);
+    return invokeCommand<void>("delete_mood_entry", { id });
   }
 };

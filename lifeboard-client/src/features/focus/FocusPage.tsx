@@ -4,8 +4,8 @@ import { useSettings } from "../settings/hooks/useSettings";
 import { useCreateFocusSession, useFocusSessions } from "./hooks/useFocus";
 import { useStopwatch } from "./hooks/useStopwatch";
 import { Button } from "../../components/ui/Button";
+import { focusApi } from "./api/focusApi";
 import { toLocalDateString } from "@/lib/utils";
-import api from "@/lib/api";
 
 interface FocusPageProps {
   defaultMode?: 'stopwatch' | 'pomodoro';
@@ -200,7 +200,7 @@ export const FocusPage: React.FC<FocusPageProps> = ({ defaultMode = 'pomodoro' }
   const handleDeleteSession = async (id: number) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa phiên tập trung này?")) return;
     try {
-      await api.delete(`/focus-sessions/${id}`);
+      await focusApi.delete(id);
       refetchHistory();
     } catch {
       alert("Lỗi khi xóa phiên tập trung.");

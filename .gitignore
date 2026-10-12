@@ -1,16 +1,15 @@
-﻿# =============================================================
+# =============================================================
 #  LifeBoard — Root .gitignore
-#  Covers: Node.js frontend · ASP.NET Core backend · MySQL · Docker
+#  Covers: Tauri 2 · Rust · React (Vite) · SQLite
 # =============================================================
 
-# ── Environment & Secrets ─────────────────────────────────────
+# ── Environment & Local Config ─────────────────────────────────
 .env
 .env.local
 .env.*.local
 .env.production
 *.secret
 secrets/
-appsettings.Production.json
 
 # ── Node.js / Frontend ────────────────────────────────────────
 node_modules/
@@ -27,136 +26,42 @@ lifeboard-client/dist/
 lifeboard-client/dist-ssr/
 lifeboard-client/.vite/
 
-# ── .NET / Backend ────────────────────────────────────────────
-# Build outputs
-LifeBoard.API/bin/
-LifeBoard.API/obj/
-LifeBoard.API/out/
+# ── Rust & Tauri Desktop ──────────────────────────────────────
+src-tauri/target/
+**/target/
+**/*.rs.bk
+Cargo.lock
 
-# .NET user-specific files
-*.user
-*.userosscache
-*.suo
-*.sln.docstates
-
-# NuGet
-*.nupkg
-*.snupkg
-**/packages/
-!**/packages/build/
-.nuget/
-nuget.config
-
-# Rider
-.idea/
-*.DotSettings.user
-
-# Visual Studio publish artifacts
-**/publish/
-**/PublishProfiles/
-
-# .NET Core runtime and temp
-*.swp
-*~
-
-# Application logs (backend)
-LifeBoard.API/logs/
-
-# ── Database ──────────────────────────────────────────────────
-# MySQL local data (if mounted locally)
-mysql-data/
-*.sql.bak
-
-# ── Docker ────────────────────────────────────────────────────
-# Docker volumes (if bind-mounted locally)
-.docker/
-docker-volumes/
+# ── SQLite & Local Data ───────────────────────────────────────
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
 
 # ── IDE & Editors ─────────────────────────────────────────────
-# VS Code (allow shared settings, ignore personal)
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 !.vscode/launch.json
 
-# JetBrains (Rider, WebStorm)
 .idea/
 *.iml
-*.iws
-*.ipr
-
-# Visual Studio
-*.aps
-*.ncb
-*.opendb
-*.opensdf
-*.sdf
-*.cache
-*.cachefile
-
-# Sublime Text
-*.tmlanguage.cache
-*.tmPreferences.cache
-*.stTheme.cache
-*.sublime-workspace
-*.sublime-project
-
-# Vim / Emacs
-*~
-\#*\#
-.#*
-*.swp
-*.swo
-Session.vim
 
 # ── OS & System ───────────────────────────────────────────────
-# macOS
 .DS_Store
-.DS_Store?
-.AppleDouble
-.LSOverride
-._*
-.Spotlight-V100
-.Trashes
-Icon?
-
-# Windows
 Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
 Desktop.ini
 $RECYCLE.BIN/
 *.cab
 *.msi
 *.msix
-*.msm
-*.msp
 *.lnk
 
-# Linux
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
-
-# ── Test Artifacts ────────────────────────────────────────────
-# xUnit / .NET test results
-TestResults/
-*.trx
-coverage/
-coverage.xml
-*.coveragexml
-
-# Playwright
-playwright-report/
-test-results/
-lifeboard-client/playwright/.cache/
-
-# ── Misc ──────────────────────────────────────────────────────
+# ── Logs & Temp ───────────────────────────────────────────────
 *.log
 *.bak
 *.tmp
 *.temp
-*.pid
 .cache/

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Save, Globe, Clock, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Save, Globe, Clock, RefreshCw, CheckCircle2, Download, Upload, Database } from "lucide-react";
 import { useSettings, useUpdateSettings } from "./hooks/useSettings";
+import { settingsApi } from "./api/settingsApi";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { applyTimezone, getStoredTimezone } from "../../stores/timezoneStore";
@@ -92,6 +93,51 @@ export const SettingsPage: React.FC = () => {
   const [liveTime, setLiveTime] = useState("");
   const [savedTz, setSavedTz] = useState(getStoredTimezone());
   const [showReloadBanner, setShowReloadBanner] = useState(false);
+  const [backupMsg, setBackupMsg] = useState<{ text: string; error?: boolean } | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const json = await settingsApi.exportBackup();
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `lifeboard-backup-${new Date().toISOString().split("T")[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setBackupMsg({ text: "Xuất dữ liệu sao lưu thành công!" });
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      setBackupMsg({ text: `Lỗi xuất sao lưu: ${err.message || String(e)}`, error: true });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!window.confirm("Khôi phục sao lưu sẽ thay thế toàn bộ dữ liệu hiện tại bằng bản sao lưu. Bạn có chắc chắn muốn tiếp tục?")) {
+      e.target.value = "";
+      return;
+    }
+    try {
+      setIsImporting(true);
+      const text = await file.text();
+      await settingsApi.importBackup(text);
+      setBackupMsg({ text: "Khôi phục dữ liệu thành công! Đang tải lại ứng dụng..." });
+      setTimeout(() => window.location.reload(), 1200);
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      setBackupMsg({ text: `Lỗi khôi phục: ${error.message || String(err)}`, error: true });
+    } finally {
+      setIsImporting(false);
+      e.target.value = "";
+    }
+  };
 
   const { register, handleSubmit, reset, watch, control, formState: { errors } } = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
@@ -421,6 +467,79 @@ export const SettingsPage: React.FC = () => {
                 error={errors.pomodoroRounds?.message}
               />
             </div>
+          </div>
+        </section>
+
+        {/* ── Backup & Restore ── */}
+        <section style={{
+          background: "var(--bg-surface)",
+          border: "1px solid var(--border-subtle)",
+          borderRadius: "var(--radius-lg)",
+          padding: 24,
+        }}>
+          <h3 style={{
+            fontSize: "var(--text-md)", fontWeight: 600, color: "var(--text-primary)",
+            marginBottom: 16, paddingBottom: 12,
+            borderBottom: "1px solid var(--border-subtle)",
+            display: "flex", alignItems: "center", gap: 8,
+          }}>
+            <Database size={18} color="var(--primary)" />
+            Sao lưu & Khôi phục dữ liệu (Local SQLite)
+          </h3>
+          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)", marginBottom: 16, lineHeight: 1.6 }}>
+            Toàn bộ dữ liệu của bạn được lưu an toàn trong file SQLite cục bộ trên máy tính. Bạn có thể xuất file sao lưu JSON bất kỳ lúc nào để chuyển sang máy khác hoặc bảo quản dự phòng.
+          </p>
+
+          {backupMsg && (
+            <div style={{
+              padding: "10px 14px",
+              borderRadius: "var(--radius-md)",
+              marginBottom: 16,
+              fontSize: "var(--text-sm)",
+              background: backupMsg.error ? "rgba(239,68,68,0.12)" : "rgba(34,197,94,0.12)",
+              color: backupMsg.error ? "var(--priority-high)" : "#10B981",
+              border: `1px solid ${backupMsg.error ? "rgba(239,68,68,0.3)" : "rgba(34,197,94,0.3)"}`,
+            }}>
+              {backupMsg.text}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleExport}
+              loading={isExporting}
+              leftIcon={<Download size={16} />}
+            >
+              Xuất file sao lưu (JSON)
+            </Button>
+
+            <label style={{ display: "inline-block", cursor: "pointer" }}>
+              <input
+                type="file"
+                accept=".json"
+                style={{ display: "none" }}
+                onChange={handleImport}
+                disabled={isImporting}
+              />
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 16px",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--border-default)",
+                background: "var(--bg-elevated)",
+                color: "var(--text-primary)",
+                fontSize: "var(--text-sm)",
+                fontWeight: 500,
+                cursor: "pointer",
+              }}>
+                <Upload size={16} />
+                {isImporting ? "Đang khôi phục..." : "Khôi phục từ file JSON"}
+              </span>
+            </label>
           </div>
         </section>
 

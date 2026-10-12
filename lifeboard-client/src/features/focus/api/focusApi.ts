@@ -1,11 +1,11 @@
-import api from '../../../lib/api';
+import { invokeCommand } from "@/lib/commands";
 
 export interface FocusSession {
   id: number;
   sessionType: 'stopwatch' | 'pomodoro';
   label?: string;
   startTime: string;
-  endTime?: string;      // null/undefined when session is still active
+  endTime?: string;
   durationSeconds: number;
   sessionDate: string;
   splits?: string;
@@ -24,21 +24,25 @@ export type CreateFocusSessionPayload = {
   label?: string;
   startTime: string;
   endTime: string;
-  sessionDate?: string;  // local date yyyy-MM-dd
+  sessionDate?: string;
   splits?: string;
 };
 
 export const focusApi = {
   getAll: async (from: string, to: string, type?: string): Promise<FocusSessionResponse> => {
-    const res = await api.get<FocusSessionResponse>('/focus-sessions', { params: { from, to, type } });
-    return res.data;
+    return invokeCommand<FocusSessionResponse>("get_focus_sessions", {
+      from,
+      to,
+      sessionType: type || null,
+    });
   },
   create: async (data: CreateFocusSessionPayload): Promise<FocusSession> => {
-    const res = await api.post<FocusSession>('/focus-sessions', data);
-    return res.data;
+    return invokeCommand<FocusSession>("create_focus_session", { payload: data });
   },
   update: async (id: number, data: CreateFocusSessionPayload): Promise<FocusSession> => {
-    const res = await api.put<FocusSession>(`/focus-sessions/${id}`, data);
-    return res.data;
+    return invokeCommand<FocusSession>("update_focus_session", { id, payload: data });
+  },
+  delete: async (id: number): Promise<void> => {
+    return invokeCommand<void>("delete_focus_session", { id });
   }
 };

@@ -1,0 +1,25 @@
+{
+  "name": "lifeboard",
+  "version": "1.0.0",
+  "description": "LifeBoard - Local-first personal productivity and life tracking desktop application",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix lifeboard-client run dev",
+    "build": "npm --prefix lifeboard-client run build",
+    "test:backend": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "tauri": "npx --yes @tauri-apps/cli",
+    "tauri:dev": "npx --yes @tauri-apps/cli dev",
+    "tauri:build": "npx --yes @tauri-apps/cli build"
+  },
+  "keywords": [
+    "lifeboard",
+    "tauri",
+    "react",
+    "rust",
+    "sqlite",
+    "productivity",
+    "local-first"
+  ],
+  "author": "LifeBoard Contributors",
+  "license": "MIT"
+}

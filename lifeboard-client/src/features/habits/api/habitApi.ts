@@ -1,4 +1,4 @@
-﻿import api from '../../../lib/api';
+import { invokeCommand } from "@/lib/commands";
 
 export interface Habit {
   id: number;
@@ -18,21 +18,18 @@ export type UpdateHabitPayload = CreateHabitPayload;
 
 export const habitApi = {
   getAll: async (): Promise<Habit[]> => {
-    const res = await api.get<Habit[]>('/habits');
-    return res.data;
+    return invokeCommand<Habit[]>("get_habits");
   },
   create: async (data: CreateHabitPayload): Promise<Habit> => {
-    const res = await api.post<Habit>('/habits', data);
-    return res.data;
+    return invokeCommand<Habit>("create_habit", { payload: data });
   },
   update: async (id: number, data: UpdateHabitPayload): Promise<Habit> => {
-    const res = await api.put<Habit>(`/habits/${id}`, data);
-    return res.data;
+    return invokeCommand<Habit>("update_habit", { id, payload: data });
   },
   delete: async (id: number): Promise<void> => {
-    await api.delete(`/habits/${id}`);
+    return invokeCommand<void>("delete_habit", { id });
   },
   checkin: async (id: number, date: string, isCompleted: boolean): Promise<void> => {
-    await api.post(`/habits/${id}/checkins`, { date, isCompleted });
+    return invokeCommand<void>("checkin_habit", { id, date, isCompleted });
   }
 };

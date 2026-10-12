@@ -142,16 +142,13 @@ export function useStopwatch(): UseStopwatchReturn {
     } catch (e: unknown) {
       // Try to extract the most descriptive error message
       let msg = 'Lỗi không xác định';
-      if (e && typeof e === 'object') {
-        // Axios error: e.response.data.error  (from our Conflict responses)
-        const axiosErr = e as { response?: { data?: { error?: string }; status?: number }; message?: string };
-        if (axiosErr.response?.data?.error) {
-          msg = axiosErr.response.data.error;
-        } else if (axiosErr.response?.status) {
-          msg = `Lỗi server (${axiosErr.response.status})`;
-        } else if (axiosErr.message) {
-          msg = axiosErr.message;
-        }
+      if (typeof e === 'string') {
+        msg = e;
+      } else if (e instanceof Error) {
+        msg = e.message;
+      } else if (e && typeof e === 'object') {
+        const objErr = e as { message?: string; error?: string };
+        msg = objErr.error || objErr.message || 'Lỗi không xác định';
       }
       setError(msg);
     } finally {

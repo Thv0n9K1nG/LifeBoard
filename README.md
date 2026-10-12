@@ -1,89 +1,137 @@
-# LifeBoard — Personal Productivity System
+# LifeBoard — Personal Productivity Desktop System
 
-> Local-first web app for task management, habit tracking, focus sessions & analytics.
+> Local-first native desktop application for task management, habit tracking, focus sessions & analytics.
 
 <img src="docs/overview.png" alt="LifeBoard overview" />
 
-## Tech Stack
-| Layer    | Technology                  |
-|----------|-----------------------------|
-| Frontend | React 18 + TypeScript + Vite |
-| Backend  | ASP.NET Core 9 Web API       |
-| Database | MySQL 8.0                    |
-| Deploy   | Docker Compose (optional)    |
+## Architecture
 
-## Quick Start (Manual)
+LifeBoard is a 100% offline-first, local desktop application built on **Tauri 2**, **React 19**, **Rust**, and **SQLite (WAL mode)**. It requires zero server setup, zero containers, and zero external databases.
 
-### Prerequisites
-- Node.js 20+, .NET 9 SDK, MySQL 8.0+
+| Layer | Technology | Details |
+|---|---|---|
+| **Desktop Shell** | [Tauri 2](https://v2.tauri.app/) | Native lightweight Windows webview window, secure IPC bridge |
+| **Frontend** | React 19 + TypeScript + Vite | Tailwind CSS, Lucide icons, Recharts, Zustand, TanStack Query |
+| **Desktop Backend** | Rust (`src-tauri`) | Native business logic, thread-safe SQLite connection pool, zero HTTP overhead |
+| **Local Storage** | SQLite (`rusqlite` bundled) | Single file database with WAL journal mode, Foreign Keys enabled |
+| **Data Directory** | `%APPDATA%\LifeBoard\lifeboard.db` | User personal data stored entirely on local disk |
 
-### 1. Database
-```bash
-mysql -u root -p < LifeBoard.API/Migrations/001_init_schema.sql
-```
+---
 
-### 2. Backend
-```bash
-cd LifeBoard.API
-# Edit appsettings.Development.json with your MySQL credentials
-dotnet run
-# API at http://localhost:5000
-```
+## Key Features
 
-### 3. Frontend
+- ✅ **Tasks & Subtasks**: Status progression (`todo`, `in_progress`, `done`, `done_late`, `cancelled`), priorities, tags, and deadline tracking.
+- ✅ **Habits & Streak Engine**: 60-day visual streak tracker with automatic grace-period calculation and weekly frequency tracking.
+- ✅ **Goals & Milestones**: Progress bar tracking, deadline monitoring, auto-completion upon reaching target metrics.
+- ✅ **Daily Notes & Mood**: Rich markdown notes and daily mood logging (1–5 scale with mood tags).
+- ✅ **Focus & Stopwatch**: Pomodoro focus session logging, active stopwatch state machine with lap splits and tags.
+- ✅ **Universal Search**: Fast local instant search across tasks, habits, and notes.
+- ✅ **Analytics & Statistics**: Productivity heatmaps, priority distribution, focus charts, and completion ratios.
+- ✅ **Backup & Restore**: Native 1-click JSON backup export and transactional restore across all 11 tables.
+
+---
+
+## Prerequisites (For Developers)
+
+To develop or build LifeBoard from source:
+1. **Node.js**: v20+ (`node -v`)
+2. **Rust & Cargo**: v1.80+ (`rustc --version`)
+3. **Windows C++ Build Tools**: Visual Studio Build Tools with C++ workload.
+
+*Note for End Users: Distributed installers (`.msi` or `.exe`) run out of the box on Windows with standard WebView2 runtime—no Rust, Node.js, or Docker required.*
+
+---
+
+## Quick Start (Development)
+
+### 1. Install Dependencies
 ```bash
 cd lifeboard-client
-# Edit .env.local if needed
-npm run dev
-# App at http://localhost:5173
+npm install
 ```
 
-## Quick Start (Docker)
-
+### 2. Run Tauri Desktop Dev
+From the root directory:
 ```bash
-docker compose up -d --build
-# App at http://localhost:5173
+npm run tauri:dev
 ```
+Or directly from `lifeboard-client`:
+```bash
+npm run tauri dev
+```
+Tauri will launch the Vite development server and open the native LifeBoard desktop window with Hot Module Replacement (HMR).
+
+### 3. Run Backend Tests
+Run the complete suite of Rust native service and domain tests:
+```bash
+cargo test --manifest-path src-tauri/Cargo.toml
+```
+
+---
+
+## Building Production Desktop App
+
+To build the standalone Windows desktop binary and installer:
+```bash
+npm run tauri:build
+```
+The compiled binary and setup bundles will be generated in:
+```text
+src-tauri/target/release/
+src-tauri/target/release/bundle/msi/
+src-tauri/target/release/bundle/nsis/
+```
+
+---
+
+## Local Data Storage & Backups
+
+- **Database location:** `%APPDATA%\LifeBoard\lifeboard.db`
+- **Settings & Timezone:** Stored locally in SQLite `settings` table.
+- **Export & Import:** Accessible anytime via **Settings → Sao lưu & Phục hồi** to export full JSON backups or restore your workspace.
+
+---
 
 ## Project Structure
 
 ```
 LifeBoard/
-├── docs/                    # 12 documentation files
-├── lifeboard-client/        # React + TypeScript frontend
+├── docs/                      # Architectural docs & migration records
+│   ├── 13-Desktop-Migration-Plan.md
+│   ├── 14-Desktop-Command-Specification.md
+│   ├── 15-SQLite-Migration-Design.md
+│   ├── 17-Feature-Migration-Matrix.md
+│   └── 20-Release-Checklist.md
+├── lifeboard-client/          # React 19 + TypeScript frontend
 │   └── src/
-│       ├── components/      # Shared UI + Layout
-│       ├── features/        # Feature modules (18 pages)
-│       ├── lib/             # API client, queryClient, utils
-│       ├── stores/          # Zustand stores (theme, settings)
-│       ├── router/          # React Router config
-│       ├── styles/          # CSS design system (tokens + themes)
-│       └── types/           # TypeScript interfaces
-├── LifeBoard.API/           # ASP.NET Core 9 backend
-│   ├── Controllers/         # 13 API controllers
-│   ├── Services/            # Business logic layer
-│   ├── Repositories/        # Data access (Dapper + MySQL)
-│   ├── Models/              # Entities + DTOs
-│   ├── Infrastructure/      # DB connection factory
-│   ├── Middleware/          # Error handling
-│   ├── BackgroundServices/  # Daily task scheduler
-│   └── Migrations/          # SQL schema scripts
-└── docker-compose.yml
+│       ├── components/        # Layout, modals, shared UI
+│       ├── features/          # 15 domain pages (tasks, habits, notes, focus, etc.)
+│       ├── lib/               # Tauri IPC commands adapter (commands.ts)
+│       ├── stores/            # Zustand stores
+│       └── styles/            # CSS tokens & themes
+├── src-tauri/                 # Tauri 2 Desktop backend (Rust)
+│   ├── src/
+│   │   ├── commands/          # Tauri IPC command handlers
+│   │   ├── models/            # Domain entities and DTOs
+│   │   ├── services/          # Business logic, streak calculations & backup
+│   │   ├── database.rs        # SQLite schema migration & connection management
+│   │   ├── error.rs           # Error handling & IPC serialization
+│   │   ├── lib.rs             # Tauri application entry & plugin registration
+│   │   ├── main.rs            # Desktop executable entry
+│   │   └── tests.rs           # In-memory SQLite integration tests
+│   ├── Cargo.toml             # Rust dependencies (rusqlite, serde, chrono)
+│   └── tauri.conf.json        # Tauri desktop configuration & window properties
+└── package.json               # Root scripts
 ```
+
+---
 
 ## Documentation
 
 | File | Description |
-|------|-------------|
-| [01-Vision](docs/01-Vision.md) | Product vision & scope |
-| [02-Product-Backlog](docs/02-Product-Backlog.md) | 21 features with user stories |
-| [03-User-Flow](docs/03-User-Flow.md) | 21 user flows |
-| [04-Use-Case](docs/04-Use-Case.md) | 28 use cases |
-| [05-Domain-Model](docs/05-Domain-Model.md) | Domain entities & relationships |
-| [06-SRS](docs/06-SRS.md) | Software Requirements Specification |
-| [07-ERD-Database-Design](docs/07-ERD-Database-Design.md) | Database schema + SQL queries |
-| [08-SDD](docs/08-SDD.md) | Software Design Document |
-| [09-API-Specification](docs/09-API-Specification.md) | REST API reference |
-| [10-UI-Guideline](docs/10-UI-Guideline.md) | Design system & components |
-| [11-Test-Plan](docs/11-Test-Plan.md) | Test strategy + test cases |
-| [12-Deployment-Guide](docs/12-Deployment-Guide.md) | Deployment instructions |
+|---|---|
+| [13-Desktop-Migration-Plan](docs/13-Desktop-Migration-Plan.md) | Desktop architecture & transition roadmap |
+| [14-Desktop-Command-Specification](docs/14-Desktop-Command-Specification.md) | Tauri IPC command contract & signatures |
+| [15-SQLite-Migration-Design](docs/15-SQLite-Migration-Design.md) | SQLite schema, indexes & query mapping |
+| [17-Feature-Migration-Matrix](docs/17-Feature-Migration-Matrix.md) | Feature migration audit matrix |
+| [20-Release-Checklist](docs/20-Release-Checklist.md) | Quality assurance & release verification checklist |

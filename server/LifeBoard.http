@@ -1,6 +1,0 @@
-@LifeBoard_HostAddress = http://localhost:5103
-
-GET {{LifeBoard_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

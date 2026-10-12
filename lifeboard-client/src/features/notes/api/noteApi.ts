@@ -1,4 +1,4 @@
-﻿import api from '../../../lib/api';
+import { invokeCommand } from "@/lib/commands";
 
 export interface DailyNote {
   id: number;
@@ -14,19 +14,16 @@ export interface UpsertDailyNotePayload {
 }
 
 export const noteApi = {
-  getByDate: async (date: string): Promise<DailyNote> => {
-    const res = await api.get<DailyNote>(`/daily-notes/date/${date}`);
-    return res.data;
+  getByDate: async (date: string): Promise<DailyNote | null> => {
+    return invokeCommand<DailyNote | null>("get_daily_note_by_date", { date });
   },
   getAll: async (): Promise<DailyNote[]> => {
-    const res = await api.get<DailyNote[]>('/daily-notes');
-    return res.data;
+    return invokeCommand<DailyNote[]>("get_daily_notes");
   },
   upsert: async (data: UpsertDailyNotePayload): Promise<DailyNote> => {
-    const res = await api.post<DailyNote>('/daily-notes', data);
-    return res.data;
+    return invokeCommand<DailyNote>("upsert_daily_note", { payload: data });
   },
   delete: async (id: number): Promise<void> => {
-    await api.delete(`/daily-notes/${id}`);
+    return invokeCommand<void>("delete_daily_note", { id });
   }
 };

@@ -1,4 +1,4 @@
-import api from '../../../lib/api';
+import { invokeCommand } from "@/lib/commands";
 import { Tag } from '../../tags/api/tagApi';
 
 export interface Task {
@@ -48,34 +48,27 @@ export type UpdateTaskPayload = CreateTaskPayload;
 
 export const taskApi = {
   getAll: async (params?: GetTasksParams): Promise<TaskListResponse> => {
-    const res = await api.get<TaskListResponse>('/tasks', { params });
-    return res.data;
+    return invokeCommand<TaskListResponse>("get_tasks", { params });
   },
   getById: async (id: number): Promise<Task> => {
-    const res = await api.get<Task>(`/tasks/${id}`);
-    return res.data;
+    return invokeCommand<Task>("get_task_by_id", { id });
   },
   create: async (data: CreateTaskPayload): Promise<Task> => {
-    const res = await api.post<Task>('/tasks', data);
-    return res.data;
+    return invokeCommand<Task>("create_task", { payload: data });
   },
   update: async (id: number, data: UpdateTaskPayload): Promise<Task> => {
-    const res = await api.put<Task>(`/tasks/${id}`, data);
-    return res.data;
+    return invokeCommand<Task>("update_task", { id, payload: data });
   },
   complete: async (id: number): Promise<Task> => {
-    const res = await api.patch<Task>(`/tasks/${id}/complete`);
-    return res.data;
+    return invokeCommand<Task>("complete_task", { id });
   },
   uncomplete: async (id: number): Promise<Task> => {
-    const res = await api.patch<Task>(`/tasks/${id}/uncomplete`);
-    return res.data;
+    return invokeCommand<Task>("uncomplete_task", { id });
   },
   archive: async (id: number): Promise<Task> => {
-    const res = await api.patch<Task>(`/tasks/${id}/archive`);
-    return res.data;
+    return invokeCommand<Task>("archive_task", { id });
   },
   delete: async (id: number): Promise<void> => {
-    await api.delete(`/tasks/${id}`);
+    return invokeCommand<void>("delete_task", { id });
   }
 };

@@ -1,4 +1,4 @@
-import api from '../../../lib/api';
+import { invokeCommand } from "@/lib/commands";
 
 export interface Settings {
   theme: 'light' | 'dark';
@@ -12,11 +12,15 @@ export interface Settings {
 
 export const settingsApi = {
   get: async (): Promise<Settings> => {
-    const res = await api.get<Settings>('/settings');
-    return res.data;
+    return invokeCommand<Settings>("get_settings");
   },
   update: async (data: Settings): Promise<Settings> => {
-    const res = await api.put<Settings>('/settings', data);
-    return res.data;
+    return invokeCommand<Settings>("update_settings", { payload: data });
+  },
+  exportBackup: async (): Promise<string> => {
+    return invokeCommand<string>("export_backup_json");
+  },
+  importBackup: async (jsonContent: string): Promise<void> => {
+    return invokeCommand<void>("import_backup_json", { jsonContent });
   }
 };

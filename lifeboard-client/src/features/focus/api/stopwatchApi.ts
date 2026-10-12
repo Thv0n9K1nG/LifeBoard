@@ -1,22 +1,10 @@
-import api from '../../../lib/api';
+import { invokeCommand } from "@/lib/commands";
 
-// ── Response shape from GET /stopwatch/current ───────────────────────────────
-
-/**
- * Authoritative state from the server.
- *
- * React uses this to reconstruct the clock display:
- *   - state = "running": elapsed = accumulatedSeconds + (Date.now()/1000 - segmentStartedAt_unix)
- *   - state = "paused":  elapsed = accumulatedSeconds  (static, no tick)
- *   - state = null/204:  no active session (idle)
- */
 export interface StopwatchState {
   id: number;
   state: 'running' | 'paused' | 'stopped';
   label?: string;
-  /** UTC ISO string — the moment this current running segment started */
   segmentStartedAt?: string;
-  /** Seconds already elapsed before the current segment */
   accumulatedSeconds: number;
   splits?: string;
   sessionDate?: string;
@@ -32,50 +20,36 @@ export interface StopwatchSplitPayload {
 }
 
 export const stopwatchApi = {
-  /**
-   * GET /stopwatch/current
-   * Returns null when no active session (204 No Content).
-   */
   getCurrent: async (): Promise<StopwatchState | null> => {
-    const res = await api.get<StopwatchState>('/stopwatch/current', {
-      validateStatus: (s) => s === 200 || s === 204,
-    });
-    return res.status === 204 ? null : res.data;
+    return invokeCommand<StopwatchState | null>("get_stopwatch_state");
   },
 
-  /** POST /stopwatch/start — begin a new session */
   start: async (payload: StartStopwatchPayload): Promise<StopwatchState> => {
-    const res = await api.post<StopwatchState>('/stopwatch/start', payload);
-    return res.data;
+    return invokeCommand<StopwatchState>("start_stopwatch", {
+      label: payload.label || null,
+      sessionDate: payload.sessionDate || null,
+    });
   },
 
-  /** POST /stopwatch/pause — pause running session */
   pause: async (): Promise<StopwatchState> => {
-    const res = await api.post<StopwatchState>('/stopwatch/pause');
-    return res.data;
+    return invokeCommand<StopwatchState>("pause_stopwatch");
   },
 
-  /** POST /stopwatch/resume — resume paused session */
   resume: async (): Promise<StopwatchState> => {
-    const res = await api.post<StopwatchState>('/stopwatch/resume');
-    return res.data;
+    return invokeCommand<StopwatchState>("resume_stopwatch");
   },
 
-  /** POST /stopwatch/stop — finalize session, moves to history */
   stop: async (): Promise<StopwatchState> => {
-    const res = await api.post<StopwatchState>('/stopwatch/stop');
-    return res.data;
+    return invokeCommand<StopwatchState>("stop_stopwatch");
   },
 
-  /** POST /stopwatch/split — add split marker */
   split: async (payload: StopwatchSplitPayload = {}): Promise<StopwatchState> => {
-    const res = await api.post<StopwatchState>('/stopwatch/split', payload);
-    return res.data;
+    return invokeCommand<StopwatchState>("split_stopwatch", {
+      note: payload.note || null,
+    });
   },
 
-  /** PATCH /stopwatch/label — update label without changing state */
   updateLabel: async (label: string): Promise<StopwatchState> => {
-    const res = await api.patch<StopwatchState>('/stopwatch/label', { label });
-    return res.data;
+    return invokeCommand<StopwatchState>("update_stopwatch_label", { label });
   },
 };

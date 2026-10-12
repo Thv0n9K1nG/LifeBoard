@@ -1,4 +1,4 @@
-import api from '../../../lib/api';
+import { invokeCommand } from "@/lib/commands";
 
 export interface Goal {
   id: number;
@@ -27,28 +27,33 @@ export interface UpdateGoalPayload extends CreateGoalPayload {
   status: 'active' | 'completed' | 'paused';
 }
 
+function withProgress(g: Goal): Goal {
+  const percent = g.targetValue > 0 ? Math.min(100, Math.round((g.currentValue / g.targetValue) * 100)) : 0;
+  return { ...g, progressPercent: percent };
+}
+
 export const goalApi = {
   getAll: async (status?: string): Promise<Goal[]> => {
-    const res = await api.get<Goal[]>('/goals', { params: status ? { status } : {} });
-    return res.data;
+    const list = await invokeCommand<Goal[]>("get_goals", { status: status || null });
+    return list.map(withProgress);
   },
   getById: async (id: number): Promise<Goal> => {
-    const res = await api.get<Goal>(`/goals/${id}`);
-    return res.data;
+    const g = await invokeCommand<Goal>("get_goal_by_id", { id });
+    return withProgress(g);
   },
   create: async (data: CreateGoalPayload): Promise<Goal> => {
-    const res = await api.post<Goal>('/goals', data);
-    return res.data;
+    const g = await invokeCommand<Goal>("create_goal", { payload: data });
+    return withProgress(g);
   },
   update: async (id: number, data: UpdateGoalPayload): Promise<Goal> => {
-    const res = await api.put<Goal>(`/goals/${id}`, data);
-    return res.data;
+    const g = await invokeCommand<Goal>("update_goal", { id, payload: data });
+    return withProgress(g);
   },
   updateProgress: async (id: number, currentValue: number): Promise<Goal> => {
-    const res = await api.patch<Goal>(`/goals/${id}/progress`, { currentValue });
-    return res.data;
+    const g = await invokeCommand<Goal>("update_goal_progress", { id, currentValue });
+    return withProgress(g);
   },
   delete: async (id: number): Promise<void> => {
-    await api.delete(`/goals/${id}`);
+    return invokeCommand<void>("delete_goal", { id });
   },
 };

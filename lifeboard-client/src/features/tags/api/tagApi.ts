@@ -1,4 +1,4 @@
-﻿import api from '../../../lib/api';
+import { invokeCommand } from "@/lib/commands";
 
 export interface Tag {
   id: number;
@@ -11,18 +11,15 @@ export type UpdateTagPayload = Omit<Tag, 'id'>;
 
 export const tagApi = {
   getAll: async (): Promise<Tag[]> => {
-    const res = await api.get<Tag[]>('/tags');
-    return res.data;
+    return invokeCommand<Tag[]>("get_tags");
   },
   create: async (data: CreateTagPayload): Promise<Tag> => {
-    const res = await api.post<Tag>('/tags', data);
-    return res.data;
+    return invokeCommand<Tag>("create_tag", { payload: data });
   },
   update: async (id: number, data: UpdateTagPayload): Promise<Tag> => {
-    const res = await api.put<Tag>(`/tags/${id}`, data);
-    return res.data;
+    return invokeCommand<Tag>("update_tag", { id, payload: data });
   },
   delete: async (id: number): Promise<void> => {
-    await api.delete(`/tags/${id}`);
+    return invokeCommand<void>("delete_tag", { id });
   }
 };
